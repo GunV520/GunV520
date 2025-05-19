@@ -1,0 +1,59 @@
+from uno_no_mercy import UnoGame
+
+def prompt_for_card(player, top_card, active_color):
+    print(f"\n{player.name}'s turn. Top card: {top_card} (active color: {active_color})")
+    for idx, card in enumerate(player.hand):
+        print(f"{idx}: {card}")
+    print(f"{len(player.hand)}: Draw card")
+
+    choice = input("Choose card index or 'd' to draw: ").strip()
+    return choice
+
+def choose_color():
+    while True:
+        color = input("Choose a color (red, green, blue, yellow): ").strip().lower()
+        if color in ["red", "green", "blue", "yellow"]:
+            return color
+        print("Invalid color.")
+
+def main():
+    player_names = input("Enter player names separated by commas: ").strip().split(",")
+    game = UnoGame([name.strip() for name in player_names])
+
+    while not game.is_game_over():
+        player = game.current_player()
+        top_card = game.top_discard()
+        print("-" * 40)
+
+        if game.stack > 0:
+            print(f"{player.name} must draw {game.stack} cards (or stack).")
+            if not player.has_playable_card(top_card):
+                game.draw_stack(player)
+                continue
+
+        choice = prompt_for_card(player, top_card, game.active_color)
+
+        if choice == 'd' or not choice.isdigit() or int(choice) >= len(player.hand):
+            drawn = game.deck.draw()
+            if drawn:
+                player.hand.append(drawn[0])
+                print(f"{player.name} drew a card: {drawn[0]}")
+            game.advance_turn()
+        else:
+            idx = int(choice)
+            card = player.hand[idx]
+            declared_color = None
+            if card.color is None:
+                declared_color = choose_color()
+            success, message = game.play_card(player, idx, declared_color)
+            if not success:
+                print(message)
+            else:
+                print(message)
+
+    print(f"🎉 Game Over! Winner: {game.get_winner()} 🎉")
+
+if __name__ == "__main__":
+    main()
+
+--->
